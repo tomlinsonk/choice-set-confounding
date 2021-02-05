@@ -217,7 +217,6 @@ def plot_synthetic_confounded_cdm():
     learning_rates = [0.01]
     use_ipws = [True, False]
     samples = 10000
-    n_items = 20
     embedding_dim = 2
     seeds = list(range(16))
     context_strength = 1
@@ -231,14 +230,14 @@ def plot_synthetic_confounded_cdm():
 
     for i, model in enumerate(models):
         best_results = [[min(
-            [results[model, lr, False, samples, n_items, embedding_dim, seed, context_strength, confounding_strength]
+            [results[model, lr, False, samples, embedding_dim, seed, context_strength, confounding_strength]
              for lr in learning_rates],
             key=lambda x: x[1])
                          for seed in seeds]
                         for confounding_strength in confounding_strengths]
 
         ipw_best_results = [[min(
-            [results[model, lr, True, samples, n_items, embedding_dim, seed, context_strength, confounding_strength]
+            [results[model, lr, True, samples, embedding_dim, seed, context_strength, confounding_strength]
              for lr in learning_rates],
             key=lambda x: x[1])
                              for seed in seeds]
@@ -423,53 +422,10 @@ def examine_lcl_ipw():
             (1, (0, 0), (0, 1), None, '#5ebf72'),
         ]
 
-        fig, axes = plt.subplots(1, 2, figsize=(5, 4), sharey='row')
 
         for model in [ConditionalLogit, ConditionalMultinomialLogit, LCL, MultinomialLCL]:
             print(f'{model.table_name} & ${-int(best_losses[model, False])}$ & ${-int(best_losses[model, True]/dataset.get_ipw_weights().mean().item())}$\\\\')
 
-        for col, ipw in enumerate([False, True]):
-
-            losses = np.array([[best_losses[ConditionalLogit, ipw], best_losses[ConditionalMultinomialLogit, ipw]],
-                               [best_losses[LCL, ipw], best_losses[MultinomialLCL, ipw]]])
-
-            if ipw:
-                losses /= dataset.get_ipw_weights().mean().item()
-
-            num_params = np.array(
-                [[best_num_params[ConditionalLogit, ipw], best_num_params[ConditionalMultinomialLogit, ipw]],
-                 [best_num_params[LCL, ipw], best_num_params[MultinomialLCL, ipw]]])
-
-            gap = losses[0, 0] - losses[1, 1]
-
-
-            axes[col].text(0.5, losses[0, 0] + gap * 0.015, 'Cond. Logit', ha='center', va='bottom')
-            axes[col].text(0.5, losses[1, 1] - gap * 0.015, 'MLCL', ha='center', va='top')
-
-            for x, top, bottom, label, color in config:
-                axes[col].bar([x], losses[top] - losses[bottom], bottom=losses[bottom], label=label, color=color)
-                p = chi2.sf(2 * (losses[top] - losses[bottom]), num_params[bottom] - num_params[top])
-
-                p = f'{p:.2g}' if p > 10 ** -10 else '$< 10^{-10}$'
-                axes[col].text(x, losses[top] - (losses[top] - losses[bottom]) / 2, p, ha='center', va='center',
-                                      color='white')
-
-            axes[col].hlines([losses[0, 0], losses[1, 1]], -0.5, 1.5, color='black')
-
-            axes[col].hlines(losses[1, 0], -0.5, 0.5, color='black')
-            axes[col].hlines(losses[0, 1], 0.5, 1.5, color='black')
-
-            axes[col].text(.1, losses[1, 0] - gap * 0.015, 'LCL', ha='left', va='top')
-            axes[col].text(0.8, losses[0, 1] + gap * 0.015, 'MCL', ha='right', va='bottom')
-
-            axes[col].set_xticks([])
-            axes[col].set_title('IPW' if ipw else 'No IPW')
-
-        axes[-1].legend(bbox_to_anchor=(1, -0.05), loc='upper right')
-        axes[0].set_ylabel('Negative Log-Likelihood')
-        fig.tight_layout()
-        plt.savefig(f'plots/{dataset.name}-ipw-bars.pdf', bbox_inches='tight')
-        plt.close()
 
 
 def plot_yoochoose_clustering():
@@ -502,8 +458,7 @@ def plot_yoochoose_clustering():
         with open(f'{RESULTS_DIR}/{dataset.name}_mixed_logit_em.pt', 'rb') as f:
             em_results = torch.load(f)
 
-        em_losses = [y[1] for y in sorted(em_results, key=lambda x: x[0][1]) if not y[0][2]]
-        em_spec_init_losses = [y[1] for y in sorted(em_results, key=lambda x: x[0][1]) if y[0][2]]
+        em_losses = [y[1] for y in sorted(em_results, key=lambda x: x[0][1])]
 
         with open(f'{RESULTS_DIR}/{dataset.name}_spectral_clustering.pt', 'rb') as f:
             cluster_results = torch.load(f)
