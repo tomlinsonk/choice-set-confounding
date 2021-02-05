@@ -28,7 +28,7 @@ DATA_DIR = config['datadir']
 L2_LAMBDA = 0.0001
 EPOCHS = 500
 
-N_THREADS = 6
+N_THREADS = 40
 
 RESULTS_DIR = 'results'
 
