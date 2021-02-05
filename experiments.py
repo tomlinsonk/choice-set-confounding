@@ -113,7 +113,7 @@ def synthetic_pets_ipw_experiment():
 
 
 def item_identity_dataset_helper(args):
-    dataset, learning_rate, split_seed, ModelClass, use_ipw, use_svd_features, full_dataset = args
+    dataset, learning_rate, split_seed, ModelClass, use_ipw, full_dataset = args
     is_chooser_model = ModelClass in [MultinomialLogit, MultinomialCDM, MultinomialLowRankCDM]
 
     choice_sets, choices, person_df = dataset.load_pytorch()
