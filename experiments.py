@@ -390,8 +390,11 @@ if __name__ == '__main__':
     # Annoying PyTorch bugfix (https://github.com/pytorch/pytorch/issues/973#issuecomment-346405667)
     torch.multiprocessing.set_sharing_strategy('file_system')
 
-    # Make pickles
     os.makedirs(f'{DATA_DIR}/pickles/', exist_ok=True)
+    os.makedirs(f'results/', exist_ok=True)
+    os.makedirs(f'ipw-weights/', exist_ok=True)
+
+    # Make pickles
     for dataset in [Expedia, YoochooseCats]:
         dataset.load()
 
