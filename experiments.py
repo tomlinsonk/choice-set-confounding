@@ -218,7 +218,7 @@ def run_item_feature_models(datasets, models, use_ipw, full_dataset=False):
 
 
 def synthetic_confounded_cdm_experiment_helper(args):
-    ModelClass, learning_rate, use_ipw, samples, n_items, embedding_dim, seed, context_strength, confounding_strength = args
+    ModelClass, learning_rate, use_ipw, samples, embedding_dim, seed, context_strength, confounding_strength = args
 
     is_chooser_model = ModelClass in [MultinomialLogit, MultinomialCDM, MultinomialLowRankCDM]
 
