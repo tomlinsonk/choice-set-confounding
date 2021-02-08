@@ -1,13 +1,9 @@
 from abc import ABC, abstractmethod
 
-import datasets
-from scipy import stats
-from sklearn import tree, preprocessing
-import matplotlib.pyplot as plt
 import numpy as np
-
+from scipy import stats
+from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
-
 
 
 class ItemIdentityChoiceSetModel(ABC):
