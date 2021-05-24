@@ -10,6 +10,9 @@ from tqdm import tqdm
 
 from datasets import SFShop, YoochooseCats, SFWork
 
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
+
 
 # From https://github.com/pytorch/pytorch/issues/31829
 @torch.jit.script
@@ -56,8 +59,8 @@ class ChoiceModel(nn.Module):
         :param y:
         :return:
         """
-        y_hat = y_hat.squeeze()
-        y = y.squeeze()
+        y_hat = y_hat.squeeze().cpu()
+        y = y.squeeze().cpu()
 
         choice_set_lengths = np.array((~torch.isinf(y_hat)).sum(1))
         ranks = stats.rankdata(-y_hat.detach().numpy(), method='average', axis=1)[np.arange(len(y)), y] - 1
@@ -338,7 +341,7 @@ class ConditionalLogit(ItemFeatureChoiceModel):
         batch_size, max_choice_set_len, num_feats = choice_set_features.size()
 
         utilities = (self.theta * choice_set_features).sum(-1)
-        utilities[torch.arange(max_choice_set_len)[None, :] >= choice_set_lengths[:, None]] = -np.inf
+        utilities[torch.arange(max_choice_set_len)[None, :].to(device) >= choice_set_lengths[:, None]] = -np.inf
 
         return nnf.log_softmax(utilities, 1)
 
@@ -368,7 +371,7 @@ class ConditionalMultinomialLogit(ItemChooserFeatureChoiceModel):
         batch_size, max_choice_set_len, num_feats = choice_set_features.size()
 
         utilities = ((self.theta + self.B @ chooser_features.unsqueeze(-1))[:, None, :, 0] * choice_set_features).sum(-1)
-        utilities[torch.arange(max_choice_set_len)[None, :] >= choice_set_lengths[:, None]] = -np.inf
+        utilities[torch.arange(max_choice_set_len)[None, :].to(device) >= choice_set_lengths[:, None]] = -np.inf
 
         return nnf.log_softmax(utilities, 1)
 
@@ -433,7 +436,7 @@ class LCL(ItemFeatureChoiceModel):
 
         # Compute context-adjusted utility of every item
         utilities = ((self.theta.unsqueeze(-1) + context_effects).view(batch_size, 1, -1) * choice_set_features).sum(-1)
-        utilities[torch.arange(max_choice_set_len).unsqueeze(0) >= choice_set_lengths.unsqueeze(-1)] = -np.inf
+        utilities[torch.arange(max_choice_set_len).to(device).unsqueeze(0) >= choice_set_lengths.unsqueeze(-1)] = -np.inf
 
         return nn.functional.log_softmax(utilities, 1)
 
@@ -467,7 +470,7 @@ class MultinomialLCL(ItemChooserFeatureChoiceModel):
 
         # Compute context-adjusted utility of every item
         utilities = ((self.theta.unsqueeze(-1) + context_effects + chooser_prefs).view(batch_size, 1, -1) * choice_set_features).sum(-1)
-        utilities[torch.arange(max_choice_set_len).unsqueeze(0) >= choice_set_lengths.unsqueeze(-1)] = -np.inf
+        utilities[torch.arange(max_choice_set_len).to(device).unsqueeze(0) >= choice_set_lengths.unsqueeze(-1)] = -np.inf
 
         return nn.functional.log_softmax(utilities, 1)
 
@@ -507,7 +510,7 @@ class MLPMultinomialLCL(ItemChooserFeatureChoiceModel):
 
         # Compute context-adjusted utility of every item
         utilities = ((self.theta.unsqueeze(-1) + context_effects + chooser_prefs).view(batch_size, 1, -1) * choice_set_features).sum(-1)
-        utilities[torch.arange(max_choice_set_len).unsqueeze(0) >= choice_set_lengths.unsqueeze(-1)] = -np.inf
+        utilities[torch.arange(max_choice_set_len).to(device).unsqueeze(0) >= choice_set_lengths.unsqueeze(-1)] = -np.inf
 
         return nn.functional.log_softmax(utilities, 1)
 
@@ -591,7 +594,7 @@ def fit(model, data, epochs=500, learning_rate=5e-2, l2_lambda=1e-4, show_live_l
 
         loss = model.loss(model(*data[:-2]), choices, weights)
 
-        l2_reg = torch.tensor(0.)
+        l2_reg = torch.tensor(0.).to(device)
         for param in model.parameters():
             l2_reg += torch.pow(param, 2).sum()
         loss += l2_lambda * l2_reg

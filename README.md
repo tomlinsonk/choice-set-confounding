@@ -1,6 +1,9 @@
 # Choice Set Confounding in Discrete Choice
 
-This is an anonymized version of the repository accompanying the KDD submission "Choice Set Confounding in Discrete Choice."
+This repository accompanies the paper
+
+> Kiran Tomlinson, Johan Ugander, and Austin R. Benson. Choice Set Confounding in Discrete Choice. KDD 2021. https://arxiv.org/abs/2105.07959
+
 
 ## Libraries
 We used:
