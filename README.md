@@ -2,7 +2,9 @@
 
 This repository accompanies the paper
 
-> Kiran Tomlinson, Johan Ugander, and Austin R. Benson. Choice Set Confounding in Discrete Choice. KDD 2021. https://arxiv.org/abs/2105.07959
+> Kiran Tomlinson, Johan Ugander, and Austin R. Benson. Choice Set Confounding in Discrete Choice. KDD 2021. 
+> [[ACM DL]](https://dl.acm.org/doi/10.1145/3447548.3467378)
+> [[arXiv]](https://arxiv.org/abs/2105.07959)
 
 
 ## Libraries
